@@ -1,0 +1,345 @@
+/* 🪧 Kor w.Chat - SillyTavern Font Extension */
+
+#korean-fonts-panel {
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+    color: var(--SmartThemeBodyColor, #ccc);
+    padding: 4px 0;
+    position: relative;
+}
+
+/* ── Tabs ── */
+.kf-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #444);
+    padding-bottom: 8px;
+}
+.kf-tab {
+    background: transparent;
+    border: 1px solid var(--SmartThemeBorderColor, #444);
+    color: var(--SmartThemeBodyColor, #ccc);
+    border-radius: 6px 6px 0 0;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.82em;
+    transition: background 0.15s;
+}
+.kf-tab:hover { background: rgba(255,255,255,0.07); }
+.kf-tab.active {
+    background: var(--SmartThemeBlurTintColor, rgba(130,100,255,0.2));
+    border-color: var(--SmartThemeQuoteColor, #a78bfa);
+    color: var(--SmartThemeQuoteColor, #c4b5fd);
+}
+
+/* ── Tab Content ── */
+.kf-tab-content { display: none; }
+.kf-tab-content.active { display: block; }
+
+/* ── Desc ── */
+.kf-desc {
+    font-size: 0.83em;
+    color: var(--SmartThemeEmColor, #aaa);
+    margin: 0 0 12px;
+    line-height: 1.6;
+}
+.kf-desc a { color: var(--SmartThemeQuoteColor, #a78bfa); }
+
+/* ── Upload Zone ── */
+.kf-upload-area {
+    border: 2px dashed var(--SmartThemeBorderColor, #555);
+    border-radius: 10px;
+    padding: 22px;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 12px;
+    transition: border-color 0.2s, background 0.2s;
+}
+.kf-upload-area:hover,
+.kf-upload-area.drag-over {
+    border-color: var(--SmartThemeQuoteColor, #a78bfa);
+    background: rgba(167,139,250,0.06);
+}
+.kf-upload-icon { font-size: 2em; margin-bottom: 6px; }
+.kf-upload-text { font-size: 0.88em; }
+.kf-upload-sub  { font-size: 0.75em; color: var(--SmartThemeEmColor, #888); margin-top: 4px; }
+
+/* ── Guide Steps ── */
+.kf-guide-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 4px;
+}
+.kf-guide-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.83em;
+    color: var(--SmartThemeBodyColor, #ccc);
+}
+.kf-step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--SmartThemeQuoteColor, #7c5cbf);
+    color: #fff;
+    font-size: 0.75em;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* ── Form ── */
+.kf-row { margin-bottom: 10px; }
+.kf-row label {
+    display: block;
+    font-size: 0.8em;
+    color: var(--SmartThemeEmColor, #aaa);
+    margin-bottom: 4px;
+}
+.kf-input, .kf-select {
+    width: 100%;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--SmartThemeBorderColor, #555);
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: var(--SmartThemeBodyColor, #ddd);
+    font-size: 0.88em;
+    box-sizing: border-box;
+}
+.kf-textarea {
+    width: 100%;
+    min-height: 110px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--SmartThemeBorderColor, #555);
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: var(--SmartThemeBodyColor, #ddd);
+    font-size: 0.82em;
+    font-family: 'Consolas', 'Courier New', monospace;
+    resize: vertical;
+    box-sizing: border-box;
+    line-height: 1.5;
+}
+
+/* ── Buttons ── */
+.kf-btn {
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: opacity 0.15s, transform 0.1s;
+}
+.kf-btn:hover  { opacity: 0.82; }
+.kf-btn:active { transform: scale(0.97); }
+
+.kf-btn-primary {
+    background: var(--SmartThemeQuoteColor, #7c5cbf);
+    color: #fff;
+}
+.kf-btn-apply {
+    background: rgba(100,200,100,0.15);
+    color: #6dce6d;
+    border: 1px solid rgba(100,200,100,0.35);
+    padding: 4px 10px;
+    font-size: 0.8em;
+}
+.kf-btn-active {
+    background: rgba(167,139,250,0.2);
+    color: var(--SmartThemeQuoteColor, #c4b5fd);
+    border: 1px solid rgba(167,139,250,0.5);
+    padding: 4px 10px;
+    font-size: 0.8em;
+}
+.kf-btn-remove {
+    background: rgba(220,80,80,0.12);
+    color: #e08080;
+    border: 1px solid rgba(220,80,80,0.3);
+    padding: 4px 10px;
+    font-size: 0.8em;
+}
+.kf-btn-danger {
+    background: rgba(200,60,60,0.15);
+    color: #e08080;
+    border: 1px solid rgba(200,60,60,0.3);
+    margin-top: 8px;
+    width: 100%;
+}
+.kf-btn-small {
+    padding: 3px 9px;
+    font-size: 0.78em;
+    background: rgba(255,255,255,0.07);
+    color: var(--SmartThemeBodyColor, #ccc);
+    border: 1px solid var(--SmartThemeBorderColor, #555);
+}
+
+/* ── Preview ── */
+.kf-preview-box {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    font-size: 0.85em;
+    color: var(--SmartThemeEmColor, #aaa);
+    border: 1px solid var(--SmartThemeBorderColor, #444);
+}
+
+/* ── Error ── */
+.kf-error-box {
+    background: rgba(200,60,60,0.1);
+    border: 1px solid rgba(200,60,60,0.3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.83em;
+    color: #e08080;
+    margin-top: 8px;
+}
+
+/* ── Options row (size + bold) ── */
+.kf-options-row {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.kf-options-row .kf-row { margin-bottom: 0; }
+
+/* ── Size row ── */
+.kf-size-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.kf-slider { flex: 1; accent-color: var(--SmartThemeQuoteColor, #a78bfa); }
+#kf-font-size-label {
+    font-size: 0.82em;
+    min-width: 32px;
+    color: var(--SmartThemeEmColor, #aaa);
+}
+
+/* ── Bold checkbox ── */
+.kf-checkbox-row {
+    display: flex;
+    align-items: center;
+}
+.kf-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.85em;
+    user-select: none;
+}
+.kf-checkbox { display: none; }
+.kf-checkbox-custom {
+    width: 18px; height: 18px;
+    border: 2px solid var(--SmartThemeBorderColor, #666);
+    border-radius: 4px;
+    background: rgba(0,0,0,0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: border-color 0.15s, background 0.15s;
+}
+.kf-checkbox:checked + .kf-checkbox-custom {
+    background: var(--SmartThemeQuoteColor, #7c5cbf);
+    border-color: var(--SmartThemeQuoteColor, #7c5cbf);
+}
+.kf-checkbox:checked + .kf-checkbox-custom::after {
+    content: '✓';
+    color: #fff;
+    font-size: 0.75em;
+    font-weight: 700;
+}
+
+/* ── Font List ── */
+.kf-font-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0 0 8px;
+    max-height: 260px;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+.kf-empty-state {
+    text-align: center;
+    color: var(--SmartThemeEmColor, #888);
+    font-size: 0.85em;
+    padding: 24px;
+}
+.kf-font-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--SmartThemeBorderColor, #444);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    transition: border-color 0.15s;
+}
+.kf-font-item.active {
+    border-color: var(--SmartThemeQuoteColor, #a78bfa);
+    background: rgba(167,139,250,0.07);
+}
+.kf-font-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    min-width: 0;
+}
+.kf-font-name {
+    font-size: 0.9em;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.kf-font-badge { font-size: 0.72em; opacity: 0.7; }
+.kf-badge-local  { color: #7dd3b0; }
+.kf-badge-noonnu { color: #93c5fd; }
+.kf-font-swatch  { font-size: 0.95em; color: var(--SmartThemeEmColor, #bbb); }
+.kf-font-actions { display: flex; gap: 5px; flex-shrink: 0; }
+
+/* ── Danger Zone ── */
+.kf-danger-zone {
+    border-top: 1px solid rgba(200,60,60,0.18);
+    padding-top: 8px;
+}
+
+/* ── Toast ── */
+.kf-toast {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 0.88em;
+    z-index: 99999;
+    pointer-events: none;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.45);
+    white-space: nowrap;
+    animation: kwc-fadein 0.2s ease;
+}
+@keyframes kwc-fadein {
+    from { opacity:0; transform: translateX(-50%) translateY(6px); }
+    to   { opacity:1; transform: translateX(-50%) translateY(0); }
+}
+.kf-toast-success { background: rgba(50,170,90,0.92);  color:#fff; }
+.kf-toast-error   { background: rgba(200,60,60,0.92);  color:#fff; }
+.kf-toast-info    { background: rgba(60,120,210,0.92); color:#fff; }

@@ -1,0 +1,10 @@
+{
+    "display_name": "Korean Custom Fonts",
+    "version": "1.0.0",
+    "author": "Custom",
+    "homePage": "",
+    "js": "index.js",
+    "css": "style.css",
+    "default_open": false,
+    "generate_interceptors": false
+}
