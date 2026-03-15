@@ -332,12 +332,8 @@ jQuery(async () => {
     const baseUrl = import.meta.url.replace('index.js', '');
     const html = await $.get(`${baseUrl}index.html`);
 
-    $('#extensions_settings2').append(
-        $('<div class="inline-drawer">').append(
-            $('<div class="inline-drawer-toggle inline-drawer-header"><b>🪧 Kor w.Chat</b></div>'),
-            $('<div class="inline-drawer-content">').html(html)
-        )
-    );
+    // HTML already contains the full inline-drawer structure with chevron icon
+    $('#extensions_settings2').append(html);
 
     bindEvents();
     restoreState();

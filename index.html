@@ -1,98 +1,96 @@
-<!-- Kor w.Chat Extension Panel -->
-<div id="korean-fonts-panel">
-
-    <div class="kf-tabs">
-        <button class="kf-tab active" data-tab="local">📁 파일 업로드</button>
-        <button class="kf-tab" data-tab="noonnu">🔤 눈누 폰트</button>
-        <button class="kf-tab" data-tab="manage">⚙️ 폰트 관리</button>
+<div class="inline-drawer">
+    <div class="inline-drawer-toggle inline-drawer-header">
+        <b>🪧 Kor w.Chat</b>
+        <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
     </div>
+    <div class="inline-drawer-content">
+        <div id="korean-fonts-panel">
 
-    <!-- Local File Upload -->
-    <div class="kf-tab-content active" id="kf-tab-local">
-        <p class="kf-desc">TTF, OTF, WOFF, WOFF2 파일을 업로드하세요.</p>
-        <div class="kf-upload-area" id="kf-drop-zone">
-            <div class="kf-upload-icon">📂</div>
-            <div class="kf-upload-text">클릭하거나 파일을 드래그하세요</div>
-            <div class="kf-upload-sub">TTF / OTF / WOFF / WOFF2</div>
-            <input type="file" id="kf-file-input" accept=".ttf,.otf,.woff,.woff2" style="display:none">
-        </div>
-        <div class="kf-row">
-            <label>폰트 이름 (선택)</label>
-            <input type="text" id="kf-local-name" class="kf-input" placeholder="비워두면 파일명 사용">
-        </div>
-        <button class="kf-btn kf-btn-primary" id="kf-add-local">추가</button>
-        <div id="kf-local-preview" class="kf-preview-box" style="display:none">
-            미리보기: <span id="kf-local-preview-text" style="font-size:1.2em">가나다 ABC 123</span>
-        </div>
-    </div>
+            <div class="kf-tabs">
+                <button class="kf-tab active" data-tab="local">📁 파일 업로드</button>
+                <button class="kf-tab" data-tab="noonnu">🔤 눈누 폰트</button>
+                <button class="kf-tab" data-tab="manage">⚙️ 폰트 관리</button>
+            </div>
 
-    <!-- Noonnu CSS Paste -->
-    <div class="kf-tab-content" id="kf-tab-noonnu">
-        <p class="kf-desc">
-            <a href="https://noonnu.cc" target="_blank">눈누(noonnu.cc)</a>에서 원하는 폰트를 찾아<br>
-            아래 순서대로 CSS 코드를 붙여넣으세요.
-        </p>
+            <!-- Local File Upload -->
+            <div class="kf-tab-content active" id="kf-tab-local">
+                <p class="kf-desc">TTF, OTF, WOFF, WOFF2 파일을 업로드하세요.</p>
+                <div class="kf-upload-area" id="kf-drop-zone">
+                    <div class="kf-upload-icon">📂</div>
+                    <div class="kf-upload-text">클릭하거나 파일을 드래그하세요</div>
+                    <div class="kf-upload-sub">TTF / OTF / WOFF / WOFF2</div>
+                    <input type="file" id="kf-file-input" accept=".ttf,.otf,.woff,.woff2" style="display:none">
+                </div>
+                <div class="kf-row">
+                    <label>폰트 이름 (선택)</label>
+                    <input type="text" id="kf-local-name" class="kf-input" placeholder="비워두면 파일명 사용">
+                </div>
+                <button class="kf-btn kf-btn-primary" id="kf-add-local">추가</button>
+                <div id="kf-local-preview" class="kf-preview-box" style="display:none">
+                    미리보기: <span id="kf-local-preview-text" style="font-size:1.2em">가나다 ABC 123</span>
+                </div>
+            </div>
 
-        <div class="kf-guide-steps">
-            <div class="kf-guide-step"><span class="kf-step-num">1</span> noonnu.cc 에서 원하는 폰트 클릭</div>
-            <div class="kf-guide-step"><span class="kf-step-num">2</span> <strong>「웹폰트로 사용」</strong> 탭 클릭</div>
-            <div class="kf-guide-step"><span class="kf-step-num">3</span> @font-face 코드 전체 복사 후 아래에 붙여넣기</div>
-        </div>
-
-        <div class="kf-row" style="margin-top:14px">
-            <label>@font-face CSS 코드</label>
-            <textarea id="kf-noonnu-css" class="kf-textarea" placeholder="@font-face {
+            <!-- Noonnu CSS Paste -->
+            <div class="kf-tab-content" id="kf-tab-noonnu">
+                <p class="kf-desc">
+                    <a href="https://noonnu.cc" target="_blank">눈누(noonnu.cc)</a>에서 원하는 폰트를 찾아<br>
+                    아래 순서대로 CSS 코드를 붙여넣으세요.
+                </p>
+                <div class="kf-guide-steps">
+                    <div class="kf-guide-step"><span class="kf-step-num">1</span> noonnu.cc 에서 원하는 폰트 클릭</div>
+                    <div class="kf-guide-step"><span class="kf-step-num">2</span> <strong>「웹폰트로 사용」</strong> 탭 클릭</div>
+                    <div class="kf-guide-step"><span class="kf-step-num">3</span> @font-face 코드 전체 복사 후 아래에 붙여넣기</div>
+                </div>
+                <div class="kf-row" style="margin-top:14px">
+                    <label>@font-face CSS 코드</label>
+                    <textarea id="kf-noonnu-css" class="kf-textarea" placeholder="@font-face {
   font-family: '폰트이름';
   src: url('https://...');
   font-weight: normal;
   font-style: normal;
 }"></textarea>
-        </div>
+                </div>
+                <div class="kf-row">
+                    <label>폰트 이름 (선택, 비우면 자동 감지)</label>
+                    <input type="text" id="kf-noonnu-name" class="kf-input" placeholder="예: 나눔바른고딕">
+                </div>
+                <button class="kf-btn kf-btn-primary" id="kf-add-noonnu">추가 및 적용</button>
+                <div id="kf-noonnu-preview" class="kf-preview-box" style="display:none">
+                    미리보기: <span id="kf-noonnu-preview-text" style="font-size:1.3em">가나다 ABC 123</span>
+                </div>
+                <div id="kf-noonnu-error" class="kf-error-box" style="display:none"></div>
+            </div>
 
-        <div class="kf-row">
-            <label>폰트 이름 (선택, 비우면 자동 감지)</label>
-            <input type="text" id="kf-noonnu-name" class="kf-input" placeholder="예: 나눔바른고딕">
-        </div>
-
-        <button class="kf-btn kf-btn-primary" id="kf-add-noonnu">추가 및 적용</button>
-
-        <div id="kf-noonnu-preview" class="kf-preview-box" style="display:none">
-            미리보기: <span id="kf-noonnu-preview-text" style="font-size:1.3em">가나다 ABC 123</span>
-        </div>
-        <div id="kf-noonnu-error" class="kf-error-box" style="display:none"></div>
-    </div>
-
-    <!-- Manage Fonts -->
-    <div class="kf-tab-content" id="kf-tab-manage">
-        <p class="kf-desc">저장된 폰트를 클릭해 채팅 메시지 전체에 적용합니다.</p>
-
-        <div class="kf-options-row">
-            <div class="kf-row">
-                <label>폰트 크기</label>
-                <div class="kf-size-row">
-                    <input type="range" id="kf-font-size" min="10" max="32" value="16" class="kf-slider">
-                    <span id="kf-font-size-label">16px</span>
-                    <button class="kf-btn kf-btn-small" id="kf-reset-size">리셋</button>
+            <!-- Manage Fonts -->
+            <div class="kf-tab-content" id="kf-tab-manage">
+                <p class="kf-desc">저장된 폰트를 클릭해 채팅 메시지 전체에 적용합니다.</p>
+                <div class="kf-options-row">
+                    <div class="kf-row">
+                        <label>폰트 크기</label>
+                        <div class="kf-size-row">
+                            <input type="range" id="kf-font-size" min="10" max="32" value="16" class="kf-slider">
+                            <span id="kf-font-size-label">16px</span>
+                            <button class="kf-btn kf-btn-small" id="kf-reset-size">리셋</button>
+                        </div>
+                    </div>
+                    <div class="kf-checkbox-row">
+                        <label class="kf-checkbox-label">
+                            <input type="checkbox" id="kf-bold-toggle" class="kf-checkbox">
+                            <span class="kf-checkbox-custom"></span>
+                            <span>볼드체 적용</span>
+                        </label>
+                    </div>
+                </div>
+                <div id="kf-font-list" class="kf-font-list">
+                    <div class="kf-empty-state">아직 추가된 폰트가 없습니다.</div>
+                </div>
+                <div class="kf-danger-zone">
+                    <button class="kf-btn kf-btn-danger" id="kf-reset-font">🔄 기본 폰트로 복원</button>
                 </div>
             </div>
 
-            <div class="kf-checkbox-row">
-                <label class="kf-checkbox-label">
-                    <input type="checkbox" id="kf-bold-toggle" class="kf-checkbox">
-                    <span class="kf-checkbox-custom"></span>
-                    <span>볼드체 적용</span>
-                </label>
-            </div>
-        </div>
-
-        <div id="kf-font-list" class="kf-font-list">
-            <div class="kf-empty-state">아직 추가된 폰트가 없습니다.</div>
-        </div>
-
-        <div class="kf-danger-zone">
-            <button class="kf-btn kf-btn-danger" id="kf-reset-font">🔄 기본 폰트로 복원</button>
+            <div id="kf-toast" class="kf-toast" style="display:none"></div>
         </div>
     </div>
-
-    <div id="kf-toast" class="kf-toast" style="display:none"></div>
 </div>
