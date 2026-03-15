@@ -333,11 +333,9 @@ jQuery(async () => {
     const html = await $.get(`${baseUrl}index.html`);
 
     $('#extensions_settings2').append(
-        $('<div>').append(
-            $('<div class="inline-drawer">').append(
-                $('<div class="inline-drawer-toggle inline-drawer-header">').html('<b>🪧 Kor w.Chat</b>'),
-                $('<div class="inline-drawer-content">').html(html)
-            )
+        $('<div class="inline-drawer">').append(
+            $('<div class="inline-drawer-toggle inline-drawer-header"><b>🪧 Kor w.Chat</b></div>'),
+            $('<div class="inline-drawer-content">').html(html)
         )
     );
 
