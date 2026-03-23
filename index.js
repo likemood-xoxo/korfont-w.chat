@@ -3,7 +3,18 @@ import { saveSettingsDebounced } from '../../../../script.js';
 import { extension_settings } from '../../../extensions.js';
 
 const EXT_NAME = 'kor-wchat-fonts';
-const CHAT_SELECTOR = '#chat .mes_text, #chat .mes_text *';
+// Font Awesome, 이모지, SVG, 아이콘 요소 제외
+const CHAT_SELECTOR = [
+    '#chat .mes_text',
+    '#chat .mes_text p',
+    '#chat .mes_text span:not(.fa):not([class*="fa-"])',
+    '#chat .mes_text div:not(.fa):not([class*="fa-"])',
+    '#chat .mes_text em',
+    '#chat .mes_text strong',
+    '#chat .mes_text b',
+    '#chat .mes_text li',
+    '#chat .mes_text a',
+].join(', ');
 const STYLE_ID = 'kwc-applied-style';
 
 const defaultSettings = {
