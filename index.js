@@ -247,8 +247,8 @@ function showFamilyPicker(families) {
         const overlay = document.createElement('div');
         overlay.id = 'kwc-family-picker';
         overlay.style.cssText = `
-            position:fixed; inset:0; background:rgba(0,0,0,0.6);
-            display:flex; align-items:center; justify-content:center; z-index:99999;
+            position:fixed; top:0; left:0; width:100vw; height:100vh;
+            background:rgba(0,0,0,0.6); z-index:99999;
         `;
 
         const box = document.createElement('div');
@@ -257,6 +257,7 @@ function showFamilyPicker(families) {
             border:1px solid var(--SmartThemeBorderColor, #555);
             border-radius:12px; padding:20px; max-width:360px; width:90%;
             box-shadow:0 8px 32px rgba(0,0,0,0.5);
+            position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
         `;
 
         box.innerHTML = `
