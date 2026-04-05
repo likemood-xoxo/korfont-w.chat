@@ -180,29 +180,54 @@ async function loadLocalFile(file, customName) {
 async function parseNoonnuCSS(css, customName) {
     css = css.trim();
 
-    // @import url(...) 형식 — URL fetch해서 font-family 자동 추출
+    // @import url(...) 형식
     if (css.startsWith('@import')) {
         const urlMatch = css.match(/@import\s+url\(['"]?([^'"\)]+)['"]?\)/);
         if (!urlMatch) throw new Error('@import URL을 인식할 수 없습니다.');
         const cssUrl = urlMatch[1];
 
-        // font-family 자동 추출 시도
-        let fontFamily = customName || '';
-        if (!fontFamily) {
-            try {
-                const res = await fetch(cssUrl);
-                if (!res.ok) throw new Error();
-                const remoteCss = await res.text();
-                const fm = remoteCss.match(/font-family\s*:\s*['"]?([^'";\n]+)['"]?\s*;/);
-                if (fm) fontFamily = fm[1].trim();
-            } catch(_) {}
+        // 원격 CSS fetch → @font-face 추출 + 상대경로 → 절대경로 변환
+        let resolvedCss = '';
+        let families = [];
+        try {
+            const res = await fetch(cssUrl);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const remoteCss = await res.text();
+
+            // 상대경로 → 절대경로 변환
+            const baseUrl = cssUrl.substring(0, cssUrl.lastIndexOf('/') + 1);
+            resolvedCss = remoteCss.replace(
+                /url\(['"]?(?!https?:\/\/|data:)([^'"\)]+)['"]?\)/g,
+                (match, path) => `url('${baseUrl}${path}')`
+            );
+
+            // font-family 목록 수집
+            const fmMatches = [...remoteCss.matchAll(/font-family\s*:\s*['"]([^'"]+)['"]/g)];
+            families = [...new Set(fmMatches.map(m => m[1].trim()))];
+        } catch(e) {
+            throw new Error(`CSS 파일을 가져오지 못했습니다: ${e.message}\n폰트 이름 칸에 직접 입력해주세요.`);
         }
 
-        if (!fontFamily) throw new Error(
-            '폰트 이름을 자동으로 가져오지 못했습니다.\n위의 "폰트 이름" 칸에 직접 입력해주세요.'
-        );
+        if (families.length === 0) throw new Error('CSS 파일에서 font-family를 찾지 못했습니다.');
 
-        return { name: customName || fontFamily, fontFamily, cssContent: css, type: 'noonnu' };
+        // 사용할 font-family 결정
+        let fontFamily = customName || '';
+        if (!fontFamily) {
+            if (families.length === 1) {
+                fontFamily = families[0];
+            } else {
+                // 여러 개면 선택 팝업
+                fontFamily = await showFamilyPicker(families);
+                if (!fontFamily) throw new Error('폰트를 선택하지 않았습니다.');
+            }
+        }
+
+        return {
+            name: customName || fontFamily,
+            fontFamily,
+            cssContent: resolvedCss, // 절대경로로 변환된 전체 CSS
+            type: 'noonnu'
+        };
     }
 
     // @font-face 형식 처리
@@ -211,6 +236,62 @@ async function parseNoonnuCSS(css, customName) {
     const fontFamily = familyMatch[1].trim();
     const name = customName || fontFamily;
     return { name, fontFamily, cssContent: css, type: 'noonnu' };
+}
+
+// 여러 font-family 중 선택 팝업
+function showFamilyPicker(families) {
+    return new Promise((resolve) => {
+        // 기존 팝업 제거
+        document.getElementById('kwc-family-picker')?.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'kwc-family-picker';
+        overlay.style.cssText = `
+            position:fixed; inset:0; background:rgba(0,0,0,0.6);
+            display:flex; align-items:center; justify-content:center; z-index:99999;
+        `;
+
+        const box = document.createElement('div');
+        box.style.cssText = `
+            background:var(--SmartThemeBlurTintColor, #1e1e2e);
+            border:1px solid var(--SmartThemeBorderColor, #555);
+            border-radius:12px; padding:20px; max-width:360px; width:90%;
+            box-shadow:0 8px 32px rgba(0,0,0,0.5);
+        `;
+
+        box.innerHTML = `
+            <div style="font-weight:700; margin-bottom:6px; font-size:1em;">폰트를 선택하세요</div>
+            <div style="font-size:0.8em; color:var(--SmartThemeEmColor,#aaa); margin-bottom:14px;">
+                이 CSS 파일에 여러 폰트가 있습니다.
+            </div>
+            <div id="kwc-family-list" style="display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto;"></div>
+            <button id="kwc-picker-cancel" style="
+                margin-top:14px; width:100%; padding:7px;
+                background:rgba(255,255,255,0.07); border:1px solid var(--SmartThemeBorderColor,#555);
+                border-radius:6px; color:var(--SmartThemeBodyColor,#ccc); cursor:pointer; font-size:0.85em;
+            ">취소</button>
+        `;
+
+        const list = box.querySelector('#kwc-family-list');
+        families.forEach(fam => {
+            const btn = document.createElement('button');
+            btn.style.cssText = `
+                padding:8px 12px; background:rgba(255,255,255,0.04);
+                border:1px solid var(--SmartThemeBorderColor,#444); border-radius:8px;
+                color:var(--SmartThemeBodyColor,#ddd); cursor:pointer; text-align:left;
+                font-size:0.88em; transition:background 0.15s;
+            `;
+            btn.innerHTML = `<span style="font-family:'${fam}',sans-serif; font-size:1.1em;">${fam}</span>`;
+            btn.onmouseenter = () => btn.style.background = 'rgba(167,139,250,0.15)';
+            btn.onmouseleave = () => btn.style.background = 'rgba(255,255,255,0.04)';
+            btn.onclick = () => { overlay.remove(); resolve(fam); };
+            list.appendChild(btn);
+        });
+
+        box.querySelector('#kwc-picker-cancel').onclick = () => { overlay.remove(); resolve(null); };
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+    });
 }
 
 // ── Events ─────────────────────────────────────────────────────────────────
