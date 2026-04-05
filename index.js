@@ -177,12 +177,40 @@ async function loadLocalFile(file, customName) {
 
 // ── Noonnu CSS parse ───────────────────────────────────────────────────────
 
-function parseNoonnuCSS(css, customName) {
+async function parseNoonnuCSS(css, customName) {
+    css = css.trim();
+
+    // @import url(...) 형식 — URL fetch해서 font-family 자동 추출
+    if (css.startsWith('@import')) {
+        const urlMatch = css.match(/@import\s+url\(['"]?([^'"\)]+)['"]?\)/);
+        if (!urlMatch) throw new Error('@import URL을 인식할 수 없습니다.');
+        const cssUrl = urlMatch[1];
+
+        // font-family 자동 추출 시도
+        let fontFamily = customName || '';
+        if (!fontFamily) {
+            try {
+                const res = await fetch(cssUrl);
+                if (!res.ok) throw new Error();
+                const remoteCss = await res.text();
+                const fm = remoteCss.match(/font-family\s*:\s*['"]?([^'";\n]+)['"]?\s*;/);
+                if (fm) fontFamily = fm[1].trim();
+            } catch(_) {}
+        }
+
+        if (!fontFamily) throw new Error(
+            '폰트 이름을 자동으로 가져오지 못했습니다.\n위의 "폰트 이름" 칸에 직접 입력해주세요.'
+        );
+
+        return { name: customName || fontFamily, fontFamily, cssContent: css, type: 'noonnu' };
+    }
+
+    // @font-face 형식 처리
     const familyMatch = css.match(/font-family\s*:\s*['"]?([^'";\n]+)['"]?\s*;/);
     if (!familyMatch) throw new Error('@font-face 코드에서 font-family를 찾을 수 없습니다.');
     const fontFamily = familyMatch[1].trim();
     const name = customName || fontFamily;
-    return { name, fontFamily, cssContent: css.trim(), type: 'noonnu' };
+    return { name, fontFamily, cssContent: css, type: 'noonnu' };
 }
 
 // ── Events ─────────────────────────────────────────────────────────────────
@@ -246,11 +274,14 @@ function bindEvents() {
 
     // Noonnu CSS paste: live preview as you type
     const cssInput = document.getElementById('kf-noonnu-css');
-    cssInput?.addEventListener('input', () => {
+    cssInput?.addEventListener('input', async () => {
         const css = cssInput.value.trim();
         if (!css) { document.getElementById('kf-noonnu-preview').style.display = 'none'; return; }
         try {
-            const fd = parseNoonnuCSS(css, document.getElementById('kf-noonnu-name')?.value.trim() || '');
+            const fd = await parseNoonnuCSS(css, document.getElementById('kf-noonnu-name')?.value.trim() || '');
+            // 이름 자동 채우기
+            const nameEl = document.getElementById('kf-noonnu-name');
+            if (nameEl && !nameEl.value.trim()) nameEl.value = fd.fontFamily;
             let ps = document.getElementById('kwc-noonnu-preview-style');
             if (!ps) { ps = document.createElement('style'); ps.id = 'kwc-noonnu-preview-style'; document.head.appendChild(ps); }
             ps.textContent = fd.cssContent;
@@ -263,16 +294,15 @@ function bindEvents() {
         }
     });
 
-    document.getElementById('kf-add-noonnu')?.addEventListener('click', () => {
+    document.getElementById('kf-add-noonnu')?.addEventListener('click', async () => {
         const css = document.getElementById('kf-noonnu-css')?.value.trim();
         const name = document.getElementById('kf-noonnu-name')?.value.trim() || '';
         const errEl = document.getElementById('kf-noonnu-error');
         if (!css) { errEl.textContent = 'CSS 코드를 붙여넣어주세요.'; errEl.style.display = 'block'; return; }
         try {
-            const fd = parseNoonnuCSS(css, name);
+            const fd = await parseNoonnuCSS(css, name);
             if (S().fonts.find(f => f.name === fd.name)) { errEl.textContent = `"${fd.name}" 이름이 이미 있습니다.`; errEl.style.display = 'block'; return; }
             S().fonts.push(fd);
-            // auto-apply
             S().activeFont = fd.name;
             buildAndApply();
             saveSettingsDebounced();
