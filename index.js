@@ -257,7 +257,12 @@ function showFamilyPicker(families) {
             border:1px solid var(--SmartThemeBorderColor, #555);
             border-radius:12px; padding:20px; max-width:360px; width:90%;
             box-shadow:0 8px 32px rgba(0,0,0,0.5);
-            position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
+            position:fixed;
+            top:50%; left:50%;
+            transform:translate(-50%, -50%);
+            max-height:80vh;
+            overflow-y:auto;
+            box-sizing:border-box;
         `;
 
         box.innerHTML = `
