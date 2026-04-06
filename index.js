@@ -217,7 +217,7 @@ async function parseNoonnuCSS(css, customName) {
                 fontFamily = families[0];
             } else {
                 // 여러 개면 선택 팝업
-                fontFamily = await showFamilyPicker(families);
+                fontFamily = await showFamilyPicker(families, resolvedCss);
                 if (!fontFamily) throw new Error('폰트를 선택하지 않았습니다.');
             }
         }
@@ -239,63 +239,105 @@ async function parseNoonnuCSS(css, customName) {
 }
 
 // 여러 font-family 중 선택 팝업
-function showFamilyPicker(families) {
+function showFamilyPicker(families, resolvedCss) {
     return new Promise((resolve) => {
-        // 기존 팝업 제거
         document.getElementById('kwc-family-picker')?.remove();
+
+        // 미리보기용 폰트 스타일 주입
+        let previewStyle = document.getElementById('kwc-picker-preview-style');
+        if (!previewStyle) {
+            previewStyle = document.createElement('style');
+            previewStyle.id = 'kwc-picker-preview-style';
+            document.head.appendChild(previewStyle);
+        }
+        previewStyle.textContent = resolvedCss || '';
 
         const overlay = document.createElement('div');
         overlay.id = 'kwc-family-picker';
         overlay.style.cssText = `
             position:fixed; top:0; left:0; width:100vw; height:100vh;
-            background:rgba(0,0,0,0.6); z-index:2147483647;
+            background:rgba(0,0,0,0.5); z-index:2147483647;
             display:flex; align-items:center; justify-content:center;
         `;
 
         const box = document.createElement('div');
         box.style.cssText = `
-            background:#1e1e2e;
-            border:1px solid #666;
-            border-radius:12px; padding:20px; max-width:360px; width:90%;
-            box-shadow:0 8px 32px rgba(0,0,0,0.7);
-            max-height:75vh;
+            background:#ffffff;
+            border-radius:16px;
+            padding:24px 20px 20px;
+            max-width:380px; width:92%;
+            box-shadow:0 12px 40px rgba(0,0,0,0.35);
+            max-height:80vh;
             overflow-y:auto;
             box-sizing:border-box;
-            flex-shrink:0;
-            color:#ddd;
             font-family:sans-serif;
+            color:#111;
         `;
 
-        box.innerHTML = `
-            <div style="font-weight:700; margin-bottom:6px; font-size:1em;">폰트를 선택하세요</div>
-            <div style="font-size:0.8em; color:var(--SmartThemeEmColor,#aaa); margin-bottom:14px;">
-                이 CSS 파일에 여러 폰트가 있습니다.
-            </div>
-            <div id="kwc-family-list" style="display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto;"></div>
-            <button id="kwc-picker-cancel" style="
-                margin-top:14px; width:100%; padding:7px;
-                background:rgba(255,255,255,0.07); border:1px solid var(--SmartThemeBorderColor,#555);
-                border-radius:6px; color:var(--SmartThemeBodyColor,#ccc); cursor:pointer; font-size:0.85em;
-            ">취소</button>
-        `;
+        const title = document.createElement('div');
+        title.style.cssText = 'font-weight:700; font-size:1.1em; margin-bottom:4px; color:#111;';
+        title.textContent = '폰트를 선택하세요';
 
-        const list = box.querySelector('#kwc-family-list');
+        const sub = document.createElement('div');
+        sub.style.cssText = 'font-size:0.78em; color:#888; margin-bottom:16px;';
+        sub.textContent = `이 CSS 파일에 ${families.length}개의 폰트가 있습니다.`;
+
+        const list = document.createElement('div');
+        list.style.cssText = 'display:flex; flex-direction:column; gap:8px;';
+
         families.forEach(fam => {
             const btn = document.createElement('button');
             btn.style.cssText = `
-                padding:8px 12px; background:rgba(255,255,255,0.04);
-                border:1px solid var(--SmartThemeBorderColor,#444); border-radius:8px;
-                color:var(--SmartThemeBodyColor,#ddd); cursor:pointer; text-align:left;
-                font-size:0.88em; transition:background 0.15s;
+                padding:12px 14px;
+                background:#f5f5f7;
+                border:1.5px solid #e0e0e0;
+                border-radius:10px;
+                cursor:pointer;
+                text-align:left;
+                transition:border-color 0.15s, background 0.15s;
+                width:100%;
             `;
-            btn.innerHTML = `<span style="font-family:'${fam}',sans-serif; font-size:1.1em;">${fam}</span>`;
-            btn.onmouseenter = () => btn.style.background = 'rgba(167,139,250,0.15)';
-            btn.onmouseleave = () => btn.style.background = 'rgba(255,255,255,0.04)';
-            btn.onclick = () => { overlay.remove(); resolve(fam); };
+
+            const label = document.createElement('div');
+            label.style.cssText = 'font-size:0.72em; color:#999; margin-bottom:4px; font-family:sans-serif;';
+            label.textContent = fam;
+
+            const preview = document.createElement('div');
+            preview.style.cssText = `font-family:'${fam}',sans-serif; font-size:1.15em; color:#111; line-height:1.5;`;
+            preview.textContent = '가나다라마바사 ABC abc 123';
+
+            btn.appendChild(label);
+            btn.appendChild(preview);
+
+            btn.onmouseenter = () => {
+                btn.style.background = '#eef0ff';
+                btn.style.borderColor = '#7c5cbf';
+            };
+            btn.onmouseleave = () => {
+                btn.style.background = '#f5f5f7';
+                btn.style.borderColor = '#e0e0e0';
+            };
+            btn.onclick = () => { overlay.remove(); previewStyle.textContent = ''; resolve(fam); };
             list.appendChild(btn);
         });
 
-        box.querySelector('#kwc-picker-cancel').onclick = () => { overlay.remove(); resolve(null); };
+        const cancel = document.createElement('button');
+        cancel.style.cssText = `
+            margin-top:14px; width:100%; padding:10px;
+            background:#f0f0f0; border:1.5px solid #ddd;
+            border-radius:10px; color:#555; cursor:pointer;
+            font-size:0.88em; font-family:sans-serif;
+            transition:background 0.15s;
+        `;
+        cancel.textContent = '취소';
+        cancel.onmouseenter = () => cancel.style.background = '#e4e4e4';
+        cancel.onmouseleave = () => cancel.style.background = '#f0f0f0';
+        cancel.onclick = () => { overlay.remove(); previewStyle.textContent = ''; resolve(null); };
+
+        box.appendChild(title);
+        box.appendChild(sub);
+        box.appendChild(list);
+        box.appendChild(cancel);
         overlay.appendChild(box);
         document.documentElement.appendChild(overlay);
     });
