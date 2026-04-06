@@ -248,21 +248,22 @@ function showFamilyPicker(families) {
         overlay.id = 'kwc-family-picker';
         overlay.style.cssText = `
             position:fixed; top:0; left:0; width:100vw; height:100vh;
-            background:rgba(0,0,0,0.6); z-index:99999;
+            background:rgba(0,0,0,0.6); z-index:2147483647;
+            display:flex; align-items:center; justify-content:center;
         `;
 
         const box = document.createElement('div');
         box.style.cssText = `
-            background:var(--SmartThemeBlurTintColor, #1e1e2e);
-            border:1px solid var(--SmartThemeBorderColor, #555);
+            background:#1e1e2e;
+            border:1px solid #666;
             border-radius:12px; padding:20px; max-width:360px; width:90%;
-            box-shadow:0 8px 32px rgba(0,0,0,0.5);
-            position:fixed;
-            top:50%; left:50%;
-            transform:translate(-50%, -50%);
-            max-height:80vh;
+            box-shadow:0 8px 32px rgba(0,0,0,0.7);
+            max-height:75vh;
             overflow-y:auto;
             box-sizing:border-box;
+            flex-shrink:0;
+            color:#ddd;
+            font-family:sans-serif;
         `;
 
         box.innerHTML = `
@@ -296,7 +297,7 @@ function showFamilyPicker(families) {
 
         box.querySelector('#kwc-picker-cancel').onclick = () => { overlay.remove(); resolve(null); };
         overlay.appendChild(box);
-        document.body.appendChild(overlay);
+        document.documentElement.appendChild(overlay);
     });
 }
 
@@ -364,9 +365,15 @@ function bindEvents() {
     cssInput?.addEventListener('input', async () => {
         const css = cssInput.value.trim();
         if (!css) { document.getElementById('kf-noonnu-preview').style.display = 'none'; return; }
+
+        // @import는 타이핑 중 자동 fetch 안 함 (추가 버튼 누를 때만)
+        if (css.startsWith('@import')) {
+            document.getElementById('kf-noonnu-preview').style.display = 'none';
+            return;
+        }
+
         try {
             const fd = await parseNoonnuCSS(css, document.getElementById('kf-noonnu-name')?.value.trim() || '');
-            // 이름 자동 채우기
             const nameEl = document.getElementById('kf-noonnu-name');
             if (nameEl && !nameEl.value.trim()) nameEl.value = fd.fontFamily;
             let ps = document.getElementById('kwc-noonnu-preview-style');
