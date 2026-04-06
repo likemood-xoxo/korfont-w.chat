@@ -256,13 +256,15 @@ function showFamilyPicker(families, resolvedCss) {
         overlay.id = 'kwc-family-picker';
         overlay.style.cssText = `
             position:fixed; top:0; left:0; width:100vw; height:100vh;
-            background:rgba(0,0,0,0.5); z-index:2147483647;
+            background:rgba(0,0,0,0.55); z-index:2147483647;
             display:flex; align-items:center; justify-content:center;
+            backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
         `;
 
         const box = document.createElement('div');
         box.style.cssText = `
             background:#ffffff;
+            backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
             border-radius:16px;
             padding:24px 20px 20px;
             max-width:380px; width:92%;
