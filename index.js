@@ -4,17 +4,18 @@ import { extension_settings } from '../../../extensions.js';
 
 const EXT_NAME = 'kor-wchat-fonts';
 // Font Awesome, 이모지, SVG, 아이콘 요소 제외
+// strong/b 는 font-weight 건드리지 않기 위해 별도 셀렉터로 분리
 const CHAT_SELECTOR = [
     '#chat .mes_text',
     '#chat .mes_text p',
     '#chat .mes_text span:not(.fa):not([class*="fa-"])',
     '#chat .mes_text div:not(.fa):not([class*="fa-"])',
     '#chat .mes_text em',
-    '#chat .mes_text strong',
-    '#chat .mes_text b',
     '#chat .mes_text li',
     '#chat .mes_text a',
 ].join(', ');
+// 폰트패밀리/크기만 적용, font-weight는 건드리지 않는 셀렉터
+const CHAT_SELECTOR_BOLD_SAFE = '#chat .mes_text strong, #chat .mes_text b';
 const STYLE_ID = 'kwc-applied-style';
 
 const defaultSettings = {
@@ -48,16 +49,17 @@ function buildAndApply() {
     if (font) {
         lines.push(`/* Kor w.Chat: ${font.name} */`);
         lines.push(font.cssContent);
-        const sizeRule  = S().fontSize ? `font-size: ${S().fontSize}px !important;` : '';
-        const boldRule  = S().bold ? 'font-weight: bold !important;' : 'font-weight: normal !important;';
-        lines.push(`${CHAT_SELECTOR} { font-family: '${font.fontFamily}', sans-serif !important; ${sizeRule} ${boldRule} }`);
-    } else if (S().fontSize || S().bold) {
-        // No font active but size/bold changed
         const sizeRule = S().fontSize ? `font-size: ${S().fontSize}px !important;` : '';
-        const boldRule = S().bold ? 'font-weight: bold !important;' : '';
-        if (sizeRule || boldRule) {
-            lines.push(`${CHAT_SELECTOR} { ${sizeRule} ${boldRule} }`);
-        }
+        // strong/b 제외한 일반 텍스트: font-weight normal (마크다운 볼드 보호)
+        lines.push(`${CHAT_SELECTOR} { font-family: '${font.fontFamily}', sans-serif !important; ${sizeRule} font-weight: normal !important; }`);
+        // strong/b 에는 폰트패밀리/크기만, font-weight는 브라우저 기본값 유지
+        lines.push(`${CHAT_SELECTOR_BOLD_SAFE} { font-family: '${font.fontFamily}', sans-serif !important; ${sizeRule} font-weight: bold !important; }`);
+        // 볼드 체크 켜면 전체 bold
+        if (S().bold) lines.push(`${CHAT_SELECTOR} { font-weight: bold !important; }`);
+    } else if (S().fontSize || S().bold) {
+        const sizeRule = S().fontSize ? `font-size: ${S().fontSize}px !important;` : '';
+        if (sizeRule) lines.push(`${CHAT_SELECTOR}, ${CHAT_SELECTOR_BOLD_SAFE} { ${sizeRule} }`);
+        if (S().bold) lines.push(`${CHAT_SELECTOR}, ${CHAT_SELECTOR_BOLD_SAFE} { font-weight: bold !important; }`);
     }
 
     if (lines.length) {
