@@ -81,6 +81,7 @@ const defaultSettings = {
     activeFont: null,
     fontSize: null,
     bold: false,
+    fontWeight: 'normal',
     applyScope: 'chat',
 };
 
@@ -92,6 +93,10 @@ function initSettings() {
         if (extension_settings[EXT_NAME][k] === undefined) {
             extension_settings[EXT_NAME][k] = v;
         }
+    }
+    // Preserve the old bold checkbox state after upgrading.
+    if (extension_settings[EXT_NAME].bold && extension_settings[EXT_NAME].fontWeight === 'normal') {
+        extension_settings[EXT_NAME].fontWeight = 'bold';
     }
 }
 
@@ -130,7 +135,8 @@ async function buildAndApply() {
         document.head.appendChild(el);
     }
     const lines = [];
-    const sizeRule = S().fontSize ? `font-size: ${S().fontSize}px !important;` : '';
+    const size = Number(S().fontSize);
+    const sizeRule = S().fontSize != null && Number.isFinite(size) && size >= 1 && size <= 100 ? `font-size: ${size}px !important;` : '';
     if (font && face) {
         const family = `'${safeFamily(font.fontFamily)}', sans-serif`;
         if (S().applyScope === 'global') {
@@ -141,7 +147,8 @@ async function buildAndApply() {
         }
     }
     if (sizeRule) lines.push(`${CHAT_SELECTOR}, ${CHAT_SELECTOR_BOLD_SAFE} { ${sizeRule} }`);
-    if (S().bold) lines.push(`${CHAT_SELECTOR}, ${CHAT_SELECTOR_BOLD_SAFE} { font-weight: bold !important; }`);
+    const weight = S().fontWeight === 'bold' || S().bold ? 700 : S().fontWeight === 'medium' ? 500 : null;
+    if (weight) lines.push(`${CHAT_SELECTOR}, ${CHAT_SELECTOR_BOLD_SAFE} { font-weight: ${weight} !important; }`);
     if (lines.length) {
         const el = document.createElement('style');
         el.id = STYLE_ID;
@@ -157,6 +164,7 @@ function resetAll() {
     S().activeFont = null;
     S().fontSize = null;
     S().bold = false;
+    S().fontWeight = 'normal';
     saveSettingsDebounced();
 }
 
@@ -566,35 +574,45 @@ function bindEvents() {
         saveSettingsDebounced();
     });
 
-    // Font size slider
-    const slider = document.getElementById('kf-font-size');
-    const sizeLabel = document.getElementById('kf-font-size-label');
-    slider?.addEventListener('input', () => {
-        S().fontSize = parseInt(slider.value);
-        sizeLabel.textContent = slider.value + 'px';
+    // Decimal font size, applied when the entry is complete.
+    const sizeInput = document.getElementById('kf-font-size');
+    sizeInput?.addEventListener('change', () => {
+        const size = Number(sizeInput.value);
+        if (sizeInput.value.trim() && (!Number.isFinite(size) || size < 1 || size > 100)) {
+            sizeInput.value = S().fontSize ?? '';
+            toast('폰트 크기는 1~100px 사이로 입력해주세요.', 'error');
+            return;
+        }
+        S().fontSize = sizeInput.value.trim() ? size : null;
         buildAndApply();
         saveSettingsDebounced();
     });
     document.getElementById('kf-reset-size')?.addEventListener('click', () => {
         S().fontSize = null;
-        slider.value = 16; sizeLabel.textContent = '16px';
+        sizeInput.value = '';
         buildAndApply();
         saveSettingsDebounced();
     });
 
-    // Bold toggle
+    // Medium and bold are mutually exclusive; unchecking returns to normal.
+    const mediumChk = document.getElementById('kf-medium-toggle');
     const boldChk = document.getElementById('kf-bold-toggle');
-    boldChk?.addEventListener('change', () => {
-        S().bold = boldChk.checked;
+    function setWeight(weight) {
+        S().fontWeight = weight;
+        S().bold = false;
+        mediumChk.checked = weight === 'medium';
+        boldChk.checked = weight === 'bold';
         buildAndApply();
         saveSettingsDebounced();
-        toast(boldChk.checked ? '볼드체 켜짐' : '볼드체 꺼짐', 'info');
-    });
+    }
+    mediumChk?.addEventListener('change', () => setWeight(mediumChk.checked ? 'medium' : 'normal'));
+    boldChk?.addEventListener('change', () => setWeight(boldChk.checked ? 'bold' : 'normal'));
 
     // Reset all
     document.getElementById('kf-reset-font')?.addEventListener('click', () => {
         resetAll();
-        slider.value = 16; sizeLabel.textContent = '16px';
+        sizeInput.value = '';
+        if (mediumChk) mediumChk.checked = false;
         if (boldChk) boldChk.checked = false;
         renderFontList();
         toast('기본 폰트로 복원됨', 'info');
@@ -602,16 +620,14 @@ function bindEvents() {
 }
 
 function restoreState() {
-    if (S().activeFont || S().fontSize || S().bold) buildAndApply();
+    if (S().activeFont || S().fontSize != null || S().fontWeight !== 'normal') buildAndApply();
 
-    const slider = document.getElementById('kf-font-size');
-    const sizeLabel = document.getElementById('kf-font-size-label');
-    if (slider && S().fontSize) {
-        slider.value = S().fontSize;
-        sizeLabel.textContent = S().fontSize + 'px';
-    }
+    const sizeInput = document.getElementById('kf-font-size');
+    if (sizeInput) sizeInput.value = S().fontSize ?? '';
+    const mediumChk = document.getElementById('kf-medium-toggle');
     const boldChk = document.getElementById('kf-bold-toggle');
-    if (boldChk) boldChk.checked = !!S().bold;
+    if (mediumChk) mediumChk.checked = S().fontWeight === 'medium';
+    if (boldChk) boldChk.checked = S().fontWeight === 'bold';
     const scope = document.getElementById('kf-apply-scope');
     if (scope) scope.value = S().applyScope;
 }

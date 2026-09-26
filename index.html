@@ -74,18 +74,23 @@
                 </div>
                 <div class="kf-options-row">
                     <div class="kf-row">
-                        <label>폰트 크기</label>
+                        <label for="kf-font-size">폰트 크기 (채팅 본문, px)</label>
                         <div class="kf-size-row">
-                            <input type="range" id="kf-font-size" min="10" max="32" value="16" class="kf-slider">
-                            <span id="kf-font-size-label">16px</span>
+                            <input type="number" id="kf-font-size" min="1" max="100" step="0.1" inputmode="decimal" placeholder="기본값" class="kf-input kf-size-input">
+                            <span>px</span>
                             <button class="kf-btn kf-btn-small" id="kf-reset-size">리셋</button>
                         </div>
                     </div>
-                    <div class="kf-checkbox-row">
+                    <div class="kf-checkbox-row kf-weight-row">
+                        <label class="kf-checkbox-label">
+                            <input type="checkbox" id="kf-medium-toggle" class="kf-checkbox">
+                            <span class="kf-checkbox-custom"></span>
+                            <span>미디엄</span>
+                        </label>
                         <label class="kf-checkbox-label">
                             <input type="checkbox" id="kf-bold-toggle" class="kf-checkbox">
                             <span class="kf-checkbox-custom"></span>
-                            <span>볼드체 적용</span>
+                            <span>볼드</span>
                         </label>
                     </div>
                 </div>
