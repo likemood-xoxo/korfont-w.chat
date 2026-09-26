@@ -135,7 +135,7 @@ async function buildAndApply() {
         const family = `'${safeFamily(font.fontFamily)}', sans-serif`;
         if (S().applyScope === 'global') {
             // Override existing UI fonts, but preserve icon glyphs and code blocks.
-            lines.push(`body, body :not(.fa):not(.fas):not(.far):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands):not([class*="fa-"]):not(.material-icons):not(.material-symbols-outlined):not(.material-symbols-rounded):not([class*="icon-"]):not(code):not(pre) { font-family: ${family} !important; }`);
+            lines.push(`body, body :not(#korean-fonts-panel):not(#korean-fonts-panel *):not(#kwc-family-picker):not(#kwc-family-picker *):not(.fa):not(.fas):not(.far):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands):not([class*="fa-"]):not(.material-icons):not(.material-symbols-outlined):not(.material-symbols-rounded):not([class*="icon-"]):not(code):not(pre) { font-family: ${family} !important; }`);
         } else {
             lines.push(`${CHAT_SELECTOR}, ${CHAT_SELECTOR_BOLD_SAFE} { font-family: ${family} !important; }`);
         }
