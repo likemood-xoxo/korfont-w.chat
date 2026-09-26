@@ -64,7 +64,14 @@
 
             <!-- Manage Fonts -->
             <div class="kf-tab-content" id="kf-tab-manage">
-                <p class="kf-desc">저장된 폰트를 클릭해 채팅 메시지 전체에 적용합니다.</p>
+                <p class="kf-desc">저장된 폰트를 선택해 적용합니다. 글씨 크기는 채팅 본문에만 적용됩니다.</p>
+                <div class="kf-row">
+                    <label for="kf-apply-scope">폰트 적용 범위</label>
+                    <select id="kf-apply-scope" class="kf-input">
+                        <option value="chat">채팅 본문만</option>
+                        <option value="global">실리태번 전체 UI</option>
+                    </select>
+                </div>
                 <div class="kf-options-row">
                     <div class="kf-row">
                         <label>폰트 크기</label>
