@@ -1,5 +1,5 @@
 // Kor w.Chat - SillyTavern Font Extension
-import { saveSettingsDebounced } from '../../../../script.js';
+import { saveSettings } from '../../../../script.js';
 import { extension_settings } from '../../../extensions.js';
 
 const EXT_NAME = 'kor-wchat-fonts';
@@ -72,7 +72,7 @@ async function migrateFonts() {
             toast(`「${font.name}」 저장소 이전 실패. 기존 데이터는 유지됩니다.`, 'error');
         }
     }
-    if (changed) saveSettingsDebounced();
+    if (changed) saveSettings();
 }
 
 
@@ -165,7 +165,7 @@ function resetAll() {
     S().fontSize = null;
     S().bold = false;
     S().fontWeight = 'normal';
-    saveSettingsDebounced();
+    saveSettings();
 }
 
 // ── Toast ──────────────────────────────────────────────────────────────────
@@ -241,7 +241,7 @@ function renderFontList() {
         btn.addEventListener('click', () => {
             S().activeFont = btn.dataset.name;
             buildAndApply();
-            saveSettingsDebounced();
+            saveSettings();
             renderFontList();
             toast(`✅ "${btn.dataset.name}" 적용됨`);
         });
@@ -256,7 +256,7 @@ function renderFontList() {
                 catch (error) { toast('저장소 삭제 실패: ' + error.message, 'error'); return; }
             }
             S().fonts = S().fonts.filter(f => f.name !== name);
-            saveSettingsDebounced();
+            saveSettings();
             renderFontList();
             toast(`🗑️ "${name}" 삭제됨`, 'info');
         });
@@ -502,7 +502,7 @@ function bindEvents() {
         try { await putFont(key, { blob: fd.blob, format: fd.format }); }
         catch (error) { toast('폰트 저장 실패: ' + error.message, 'error'); return; }
         S().fonts.push({ name: fd.name, fontFamily: fd.fontFamily, type: 'local', key });
-        saveSettingsDebounced();
+        saveSettings();
         pendingLocal = null;
         const preview = document.getElementById('kwc-pending-style');
         if (preview?._url) URL.revokeObjectURL(preview._url);
@@ -555,7 +555,7 @@ function bindEvents() {
             S().fonts.push({ name: fd.name, fontFamily: fd.fontFamily, type: 'noonnu', key });
             S().activeFont = fd.name;
             buildAndApply();
-            saveSettingsDebounced();
+            saveSettings();
             document.getElementById('kf-noonnu-css').value = '';
             document.getElementById('kf-noonnu-name').value = '';
             document.getElementById('kf-noonnu-preview').style.display = 'none';
@@ -571,27 +571,31 @@ function bindEvents() {
     document.getElementById('kf-apply-scope')?.addEventListener('change', event => {
         S().applyScope = event.target.value;
         buildAndApply();
-        saveSettingsDebounced();
+        saveSettings();
     });
 
     // Decimal font size, applied when the entry is complete.
     const sizeInput = document.getElementById('kf-font-size');
-    sizeInput?.addEventListener('change', () => {
+    function updateSize(save) {
         const size = Number(sizeInput.value);
         if (sizeInput.value.trim() && (!Number.isFinite(size) || size < 1 || size > 100)) {
-            sizeInput.value = S().fontSize ?? '';
-            toast('폰트 크기는 1~100px 사이로 입력해주세요.', 'error');
+            if (save) {
+                sizeInput.value = S().fontSize ?? '';
+                toast('폰트 크기는 1~100px 사이로 입력해주세요.', 'error');
+            }
             return;
         }
         S().fontSize = sizeInput.value.trim() ? size : null;
         buildAndApply();
-        saveSettingsDebounced();
-    });
+        saveSettings();
+    }
+    sizeInput?.addEventListener('input', () => updateSize(false));
+    sizeInput?.addEventListener('change', () => updateSize(true));
     document.getElementById('kf-reset-size')?.addEventListener('click', () => {
         S().fontSize = null;
         sizeInput.value = '';
         buildAndApply();
-        saveSettingsDebounced();
+        saveSettings();
     });
 
     // Medium and bold are mutually exclusive; unchecking returns to normal.
@@ -603,7 +607,7 @@ function bindEvents() {
         mediumChk.checked = weight === 'medium';
         boldChk.checked = weight === 'bold';
         buildAndApply();
-        saveSettingsDebounced();
+        saveSettings();
     }
     mediumChk?.addEventListener('change', () => setWeight(mediumChk.checked ? 'medium' : 'normal'));
     boldChk?.addEventListener('change', () => setWeight(boldChk.checked ? 'bold' : 'normal'));
