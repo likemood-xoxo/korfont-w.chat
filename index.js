@@ -18,6 +18,7 @@ const CHAT_SELECTOR = [
 const CHAT_SELECTOR_BOLD_SAFE = '#chat .mes_text strong, #chat .mes_text b';
 const STYLE_ID = 'kwc-applied-style';
 const FACE_ID = 'kwc-active-face';
+const PRESENTATION_KEY = 'kor-wchat-fonts:presentation-v1';
 let activeUrl = null;
 let applySequence = 0;
 let previewUrls = [];
@@ -83,6 +84,7 @@ const defaultSettings = {
     bold: false,
     fontWeight: 'normal',
     applyScope: 'chat',
+    presentationRevision: 0,
 };
 
 function initSettings() {
@@ -101,6 +103,38 @@ function initSettings() {
 }
 
 function S() { return extension_settings[EXT_NAME]; }
+
+// Keep the small display preferences in the browser as a fallback when the
+// SillyTavern settings request has not finished before a reload.
+function rememberPresentation() {
+    const revision = Math.max(Date.now(), (S().presentationRevision || 0) + 1);
+    S().presentationRevision = revision;
+    try {
+        localStorage.setItem(PRESENTATION_KEY, JSON.stringify({
+            revision,
+            fontSize: S().fontSize,
+            fontWeight: S().fontWeight,
+            applyScope: S().applyScope,
+        }));
+    } catch (error) { console.warn('Kor w.Chat: 브라우저 설정 백업 실패', error); }
+}
+
+function recoverPresentation() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(PRESENTATION_KEY) || 'null');
+        if (!saved || !Number.isFinite(saved.revision) || saved.revision <= S().presentationRevision) return false;
+        if (saved.fontSize !== null && (!Number.isFinite(saved.fontSize) || saved.fontSize < 1 || saved.fontSize > 100)) return false;
+        if (!['normal', 'medium', 'bold'].includes(saved.fontWeight)) return false;
+        if (!['chat', 'global'].includes(saved.applyScope)) return false;
+        S().fontSize = saved.fontSize;
+        S().fontWeight = saved.fontWeight;
+        S().bold = false;
+        S().applyScope = saved.applyScope;
+        S().presentationRevision = saved.revision;
+        return true;
+    } catch (error) { console.warn('Kor w.Chat: 브라우저 설정 복원 실패', error); }
+    return false;
+}
 
 // ── Style injection ────────────────────────────────────────────────────────
 
@@ -165,6 +199,7 @@ function resetAll() {
     S().fontSize = null;
     S().bold = false;
     S().fontWeight = 'normal';
+    rememberPresentation();
     saveSettings();
 }
 
@@ -570,6 +605,7 @@ function bindEvents() {
 
     document.getElementById('kf-apply-scope')?.addEventListener('change', event => {
         S().applyScope = event.target.value;
+        rememberPresentation();
         buildAndApply();
         saveSettings();
     });
@@ -586,6 +622,7 @@ function bindEvents() {
             return;
         }
         S().fontSize = sizeInput.value.trim() ? size : null;
+        rememberPresentation();
         buildAndApply();
         saveSettings();
     }
@@ -594,6 +631,7 @@ function bindEvents() {
     document.getElementById('kf-reset-size')?.addEventListener('click', () => {
         S().fontSize = null;
         sizeInput.value = '';
+        rememberPresentation();
         buildAndApply();
         saveSettings();
     });
@@ -604,6 +642,7 @@ function bindEvents() {
     function setWeight(weight) {
         S().fontWeight = weight;
         S().bold = false;
+        rememberPresentation();
         mediumChk.checked = weight === 'medium';
         boldChk.checked = weight === 'bold';
         buildAndApply();
@@ -640,6 +679,7 @@ function restoreState() {
 
 jQuery(async () => {
     initSettings();
+    const recovered = recoverPresentation();
 
     const baseUrl = import.meta.url.replace('index.js', '');
     const html = await $.get(`${baseUrl}index.html`);
@@ -649,5 +689,6 @@ jQuery(async () => {
 
     bindEvents();
     await migrateFonts();
+    if (recovered) saveSettings();
     restoreState();
 });
