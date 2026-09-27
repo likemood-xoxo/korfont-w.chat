@@ -1,5 +1,5 @@
 // Kor w.Chat - SillyTavern Font Extension
-import { saveSettings } from '../../../../script.js';
+import { getRequestHeaders, saveSettings } from '../../../../script.js';
 import { extension_settings } from '../../../extensions.js';
 
 const EXT_NAME = 'kor-wchat-fonts';
@@ -51,29 +51,80 @@ const putFont = (key, value) => fontStore('readwrite', store => store.put(value,
 const deleteFont = key => fontStore('readwrite', store => store.delete(key));
 const fontKey = () => crypto.randomUUID();
 function safeFamily(value) { return String(value).replace(/[\\'\r\n]/g, ''); }
+async function getCachedFont(font) {
+    if (!font.key) return null;
+    try { return await getFont(font.key); }
+    catch (error) { console.warn('Kor w.Chat: 로컬 폰트 저장소 읽기 실패', error); return null; }
+}
+function serverFileUrl(path) {
+    const url = new URL(String(path), location.origin + '/');
+    if (url.origin !== location.origin || !url.pathname.includes('/files/')) throw new Error('서버가 잘못된 폰트 경로를 반환했습니다.');
+    return url.pathname + url.search;
+}
+function blobBase64(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(',')[1]);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+    });
+}
+async function uploadFontBase64(data, extension) {
+    const name = `kwc-font-${fontKey()}.${extension}`;
+    const response = await fetch('/api/files/upload', {
+        method: 'POST',
+        headers: getRequestHeaders(),
+        body: JSON.stringify({ name, data }),
+    });
+    if (!response.ok) throw new Error(`폰트 서버 저장 실패 (HTTP ${response.status})`);
+    return serverFileUrl((await response.json()).path);
+}
+const fontExtension = format => ({ truetype: 'ttf', opentype: 'otf', woff: 'woff', woff2: 'woff2' })[format] || 'ttf';
+const safeFormat = format => ['truetype', 'opentype', 'woff', 'woff2'].includes(format) ? format : 'truetype';
 function clearActiveFace() {
     document.getElementById(FACE_ID)?.remove();
     if (activeUrl) URL.revokeObjectURL(activeUrl);
     activeUrl = null;
 }
 
-// Migrate one font at a time. Keep legacy CSS until its IndexedDB write succeeds.
-async function migrateFonts() {
+// Publish old browser-only fonts without removing their local copies. Another
+// browser can then use the server URL or the shared Noonnu CSS.
+async function publishMissingFonts() {
     let changed = false;
+    let published = 0;
     for (const font of S().fonts) {
-        if (!font.cssContent) continue;
-        const key = font.key || fontKey();
+        if (font.url || (font.type === 'noonnu' && font.cssContent)) continue;
         try {
-            await putFont(key, { cssContent: font.cssContent });
-            font.key = key;
-            delete font.cssContent;
+            const stored = await getCachedFont(font);
+            const css = stored?.cssContent || font.cssContent;
+            if (font.type === 'noonnu' && css) {
+                font.cssContent = css;
+            } else if (font.type === 'local' && stored?.blob) {
+                font.url = await uploadFontBase64(await blobBase64(stored.blob), fontExtension(stored.format));
+                font.format = safeFormat(stored.format);
+                delete font.cssContent;
+            } else if (font.type === 'local' && css) {
+                const dataUrl = css.match(/url\(\s*['"]?(data:[^'"\s)]+)['"]?\s*\)/)?.[1];
+                if (!dataUrl) continue;
+                const base64 = dataUrl.split(',')[1];
+                const format = safeFormat(css.match(/format\(['"]?([^'"\)]+)/)?.[1]);
+                font.url = await uploadFontBase64(base64, fontExtension(format));
+                font.format = format;
+                delete font.cssContent;
+            } else continue;
             changed = true;
+            published++;
         } catch (error) {
-            console.error('Kor w.Chat: 폰트 이전 실패', error);
-            toast(`「${font.name}」 저장소 이전 실패. 기존 데이터는 유지됩니다.`, 'error');
+            console.error('Kor w.Chat: 폰트 공유 저장 실패', error);
+            toast(`「${font.name}」 공유 저장 실패: ${error.message}`, 'error');
         }
     }
-    if (changed) saveSettings();
+    if (changed) {
+        await saveSettings();
+        toast(`폰트 ${published}개 공유 저장 완료`);
+    }
+    if (changed && document.getElementById('kf-tab-manage')?.classList.contains('active')) renderFontList();
+    if (changed && S().activeFont) buildAndApply();
 }
 
 
@@ -146,9 +197,11 @@ async function buildAndApply() {
     let face = '';
     if (font) {
         try {
-            const stored = font.key ? await getFont(font.key) : null;
+            const stored = await getCachedFont(font);
             if (sequence !== applySequence) return;
-            if (stored?.blob) {
+            if (font.url) {
+                face = `@font-face { font-family: '${safeFamily(font.fontFamily)}'; src: url('${serverFileUrl(font.url)}') format('${font.format || stored?.format || 'truetype'}'); }`;
+            } else if (stored?.blob) {
                 activeUrl = URL.createObjectURL(stored.blob);
                 face = `@font-face { font-family: '${safeFamily(font.fontFamily)}'; src: url('${activeUrl}') format('${stored.format}'); }`;
             } else {
@@ -255,16 +308,22 @@ function renderFontList() {
         const previewFamily = `kwc-preview-${index}`;
         (async () => {
             try {
-                const stored = font.key ? await getFont(font.key) : null;
+                const stored = await getCachedFont(font);
                 if (!previewStyle.isConnected || !swatch.isConnected) return;
-                if (stored?.blob) {
+                if (font.url) {
+                    previewStyle.textContent += `\n@font-face { font-family: '${previewFamily}'; src: url('${serverFileUrl(font.url)}') format('${font.format || stored?.format || 'truetype'}'); }`;
+                    swatch.style.fontFamily = `'${previewFamily}', sans-serif`;
+                } else if (stored?.blob) {
                     const url = URL.createObjectURL(stored.blob);
                     previewUrls.push(url);
                     previewStyle.textContent += `\n@font-face { font-family: '${previewFamily}'; src: url('${url}') format('${stored.format}'); }`;
                     swatch.style.fontFamily = `'${previewFamily}', sans-serif`;
                 } else {
-                    const css = stored?.cssContent || font.cssContent;
-                    if (!css) return;
+                    const css = font.cssContent || stored?.cssContent;
+                    if (!css) {
+                        swatch.textContent = '폰트 파일 없음 · 등록한 기기에서 열어주세요';
+                        return;
+                    }
                     previewStyle.textContent += `\n${css}`;
                     swatch.style.fontFamily = `'${safeFamily(font.fontFamily)}', sans-serif`;
                 }
@@ -534,9 +593,12 @@ function bindEvents() {
         if (name) { fd.name = name; fd.fontFamily = name; }
         if (S().fonts.find(f => f.name === fd.name)) { toast(`"${fd.name}" 이름이 이미 있습니다.`, 'error'); return; }
         const key = fontKey();
+        let url;
+        try { url = await uploadFontBase64(await blobBase64(fd.blob), fontExtension(fd.format)); }
+        catch (error) { toast('폰트 공유 저장 실패: ' + error.message, 'error'); return; }
         try { await putFont(key, { blob: fd.blob, format: fd.format }); }
-        catch (error) { toast('폰트 저장 실패: ' + error.message, 'error'); return; }
-        S().fonts.push({ name: fd.name, fontFamily: fd.fontFamily, type: 'local', key });
+        catch (error) { console.warn('Kor w.Chat: 로컬 캐시 저장 실패', error); }
+        S().fonts.push({ name: fd.name, fontFamily: fd.fontFamily, type: 'local', key, url, format: fd.format });
         saveSettings();
         pendingLocal = null;
         const preview = document.getElementById('kwc-pending-style');
@@ -585,9 +647,7 @@ function bindEvents() {
         try {
             const fd = await parseNoonnuCSS(css, name);
             if (S().fonts.find(f => f.name === fd.name)) { errEl.textContent = `"${fd.name}" 이름이 이미 있습니다.`; errEl.style.display = 'block'; return; }
-            const key = fontKey();
-            await putFont(key, { cssContent: fd.cssContent });
-            S().fonts.push({ name: fd.name, fontFamily: fd.fontFamily, type: 'noonnu', key });
+            S().fonts.push({ name: fd.name, fontFamily: fd.fontFamily, type: 'noonnu', cssContent: fd.cssContent });
             S().activeFont = fd.name;
             buildAndApply();
             saveSettings();
@@ -688,7 +748,7 @@ jQuery(async () => {
     $('#extensions_settings2').append(html);
 
     bindEvents();
-    await migrateFonts();
-    if (recovered) saveSettings();
     restoreState();
+    if (recovered) saveSettings();
+    await publishMissingFonts();
 });
